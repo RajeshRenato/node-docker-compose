@@ -9,6 +9,11 @@ A simple message board application showing Docker Compose in action:
 - Node.js API with Express
 - MongoDB for data storage
 
+## 🖥️ UI
+
+<img width="872" alt="image" src="https://github.com/user-attachments/assets/50036afa-fed7-42d1-be6b-a555aa4a8ae5" />
+
+
 ### Prerequisites 🛠️
 
 Make sure you have these installed:
