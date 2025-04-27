@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Docker Compose Sandwich Shop</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f7f9fc;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+        .message {
+            color: #2c3e50;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .message-list {
+            margin-top: 30px;
+        }
+        .message-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            transition: transform 0.2s;
+        }
+        .message-item:hover {
+            transform: translateX(5px);
+        }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .emoji {
+            font-size: 24px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🥪 Docker Compose Sandwich Shop</h1>
+        <p>Where containers serve your messages fresh!</p>
+    </div>
+
+    <div class="container">
+        <div class="status">
+            <span class="emoji">🔌</span>
+            <span id="connectionStatus">Checking connection...</span>
+        </div>
+        
+        <div class="input-group">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Type your message here..."
+                onkeypress="if(event.key === 'Enter') sendMessage()"
+            >
+            <button onclick="sendMessage()">Send Message</button>
+        </div>
+
+        <div class="message-list">
+            <h2>📝 Messages</h2>
+            <div id="messages"></div>
+        </div>
+    </div>
+
+    <script>
+        testConnection();
+
+        async function testConnection() {
+            const status = document.getElementById('connectionStatus');
+            try {
+                const response = await fetch('/api/test');
+                const data = await response.json();
+                status.textContent = 'Connected to API and MongoDB! 🚀';
+                loadMessages();
+            } catch (error) {
+                status.textContent = 'Connection error: ' + error.message;
+                status.style.backgroundColor = '#ffebee';
+                status.style.color = '#c62828';
+            }
+        }
+
+        async function loadMessages() {
+            const messagesDiv = document.getElementById('messages');
+            try {
+                const response = await fetch('/api/messages');
+                const messages = await response.json();
+                
+                messagesDiv.innerHTML = messages.map(msg => `
+                    <div class="message-item">
+                        <div class="message">${msg.text}</div>
+                        <div class="timestamp">📅 ${new Date(msg.createdAt).toLocaleString()}</div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                messagesDiv.innerHTML = `
+                    <div class="message-item" style="border-left-color: #e74c3c;">
+                        <div class="message">Error loading messages: ${error.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            try {
+                await fetch('/api/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text })
+                });
+                
+                input.value = '';
+                loadMessages();
+            } catch (error) {
+                console.error('Error sending message:', error);
+            }
+        }
+
+        setInterval(loadMessages, 5000);
+    </script>
+</body>
+</html> 
